@@ -415,11 +415,15 @@ function calc() {
   optionsRow.style.display='grid'; resultTable.style.display='table';
   totalRow.style.display='grid'; actionsBar.style.display='flex';
 
-  if (isProrata) {
-    prorataBanner.style.display='flex';
-    document.getElementById('prorataText').innerHTML=
-      `Proratisation au jour près : <strong>${joursR} jour${joursR>1?'s':''}</strong> sur ${joursT} (du ${dateEffet.toLocaleDateString('fr-FR')} au 31/12/${annee})`;
-  }
+  prorataBanner.style.display = 'flex';
+
+if (isProrata) {
+  document.getElementById('prorataText').innerHTML =
+    `Proratisation au jour près : <strong>${joursR} jour${joursR > 1 ? 's' : ''}</strong> sur ${joursT} (du ${dateEffet.toLocaleDateString('fr-FR')} au 31/12/${annee})`;
+} else {
+  document.getElementById('prorataText').innerHTML =
+    `Période couverte : <strong>du ${dateEffet.toLocaleDateString('fr-FR')} au 31/12/${annee}</strong>`;
+}
 
   const tbody = document.getElementById('resultRows');
   tbody.innerHTML='';
