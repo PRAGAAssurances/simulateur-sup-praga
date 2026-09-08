@@ -110,6 +110,8 @@ const PDF_GARANTIES = "data:application/pdf;base64,JVBERi0xLjcNCiW1tbW1DQoxIDAgb
   .result-table tbody td { padding:13px 12px; border-bottom:1px solid var(--n100); vertical-align:middle; }
   .td-name { font-size:0.9rem; font-weight:600; color:var(--n900); }
   .td-meta { font-size:0.775rem; color:var(--n500); margin-top:2px; }
+
+  .td-ann { font-size:0.75rem; color:var(--n500); font-weight:500; margin-top:3px; white-space:nowrap; }
   .td-amt { text-align:right; font-size:0.9375rem; font-weight:700; white-space:nowrap; }
   .td-amt.c200 { color:var(--blue); }
   .td-amt.c300 { color:var(--fuchsia); }
@@ -266,10 +268,12 @@ const PDF_GARANTIES = "data:application/pdf;base64,JVBERi0xLjcNCiW1tbW1DQoxIDAgb
       <div class="total-block total200">
         <div class="total-tag">Option 200 %</div>
         <div class="total-amount" id="tot200">—</div>
+        <div class="total-annuel" id="tot200ann" style="display:none">—</div>
       </div>
       <div class="total-block total300">
         <div class="total-tag">Option 300 %</div>
         <div class="total-amount" id="tot300">—</div>
+        <div class="total-annuel" id="tot300ann" style="display:none">—</div>
       </div>
     </div>
 
@@ -423,6 +427,8 @@ function calc() {
     totalRow.style.display='none'; actionsBar.style.display='none';
     document.getElementById('tot200').textContent='—';
     document.getElementById('tot300').textContent='—';
+    document.getElementById('tot200ann').style.display='none';
+    document.getElementById('tot300ann').style.display='none';
     noteEl.textContent=''; return;
   }
 
@@ -453,15 +459,36 @@ if (isProrata) {
     if(c200!==null) tot200+=c200;
     if(c300!==null) tot300+=c300;
     const tr = document.createElement('tr');
+    const ann200cell = isProrata && a200!==null ? `<div class="td-ann">${fmt(a200)} / an</div>` : '';
+    const ann300cell = isProrata && a300!==null ? `<div class="td-ann">${fmt(a300)} / an</div>` : '';
     tr.innerHTML=`
       <td><div class="td-name">${b.qualite}</div><div class="td-meta">${ageDiff} ans — ${TRANCHES[idx].label}</div></td>
-      <td class="td-amt c200">${fmt(c200)}</td>
-      <td class="td-amt c300">${fmt(c300)}</td>`;
+      <td class="td-amt c200">${fmt(c200)}${ann200cell}</td>
+      <td class="td-amt c300">${fmt(c300)}${ann300cell}</td>`;
     tbody.appendChild(tr);
   });
 
   document.getElementById('tot200').textContent=fmt(tot200);
   document.getElementById('tot300').textContent=fmt(tot300);
+
+  // Montant annuel théorique dans les totaux (affiché uniquement si proratisation)
+  if(isProrata){
+    let tot200ann=0, tot300ann=0;
+    benefs.forEach(b => {
+      const ageDiff2 = annee - parseInt(b.annee);
+      const idx2 = getTranche(ageDiff2, b.qualite);
+      const [a200ann, a300ann] = t[idx2];
+      if(a200ann!==null) tot200ann+=a200ann;
+      if(a300ann!==null) tot300ann+=a300ann;
+    });
+    document.getElementById('tot200ann').textContent=fmt(tot200ann)+' / an';
+    document.getElementById('tot300ann').textContent=fmt(tot300ann)+' / an';
+    document.getElementById('tot200ann').style.display='block';
+    document.getElementById('tot300ann').style.display='block';
+  } else {
+    document.getElementById('tot200ann').style.display='none';
+    document.getElementById('tot300ann').style.display='none';
+  }
   noteEl.textContent = isProrata
     ? `* Cotisations TTC proratisées au jour près (${joursR}/${joursT} jours). Ces cotisations s'ajoutent aux cotisations de la formule PRAGA 100 %. Le choix du niveau de garantie entraîne le même choix pour l'ensemble des bénéficiaires rattachés.`
     : `* Cotisations TTC annuelles en euros par bénéficiaire — tarifs ${annee}. Ces cotisations s'ajoutent aux cotisations de la formule PRAGA 100 %. Le choix du niveau de garantie entraîne le même choix pour l'ensemble des bénéficiaires rattachés.`;
